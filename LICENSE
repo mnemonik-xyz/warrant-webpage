@@ -8,6 +8,9 @@ the smart contracts, software, documentation and associated materials provided u
 this agreement, or any portion of them (together, the "Licensed Work"), you agree to
 the terms of this agreement. If you do not agree, you must not exercise the rights
 granted in this agreement. Each condition of this agreement is also a covenant by you.
+This agreement is made for the express benefit of the Mnemonik DAO, the decentralized
+community of Mnemonik governance token holders acting through governance smart
+contracts ("Mnemonik DAO"), which is a third party beneficiary of this agreement.
 
 1. Grant of Rights
 
@@ -36,19 +39,20 @@ nothing in this agreement restricts rights granted by that license.
 
 2.1 Revenue Share. In consideration of the rights granted in this agreement, Licensee
 shall pay 50% of Licensee's Protocol Revenue (the "Protocol Revenue Share") to
-Mnemonik.
+Mnemonik DAO.
 
 2.2 Payment Terms. Licensee shall remit the Protocol Revenue Share no later than 10
 business days after the end of each calendar quarter, for amounts accrued in that
-quarter, via on-chain transfer to Mnemonik's Designated Address. If no Designated
+quarter, via on-chain transfer to Mnemonik DAO's Designated Address. If no Designated
 Address has been specified, Licensee shall hold the Protocol Revenue Share in trust
-for Mnemonik and shall promptly seek Mnemonik's instruction on where and how to remit
-payment.
+for Mnemonik DAO and shall promptly seek Mnemonik DAO's instruction (e.g., via DAO
+governance processes) on where and how to remit payment.
 
-2.3 Designation and Adjustment. Mnemonik may, by public notice, designate or change
-the Designated Address, set operational details for payments, or clarify the
-definition of Protocol Revenue. Mnemonik may also reduce the 50% Protocol Revenue
-Share in its sole discretion.
+2.3 DAO Governance. Mnemonik DAO may, through governance vote, designate or change the
+Designated Address, set operational details for payments, or clarify the definition
+of Protocol Revenue. Mnemonik DAO may also reduce the 50% Protocol Revenue Share in its
+sole discretion. Mnemonik DAO will submit all such changes to its designated
+blockchain.
 
 3. Termination
 
@@ -60,7 +64,7 @@ Work in Licensee's possession.
 
 3.2 Reinstatement. Mnemonik may, in its discretion, reinstate the license if Licensee
 cures the breach (including full payment of Protocol Revenue Share due, plus any
-reasonable interest or late fees set by Mnemonik) and provides reasonable assurances
+reasonable interest or late fees set by DAO governance) and provides reasonable assurances
 against future breaches.
 
 4. Intellectual Property
@@ -103,5 +107,5 @@ Application Binary Interface (ABI), regardless of the blockchain on which it is
 deployed.
 
 7.3 "Designated Address" means any on-chain address (or smart contract) or Ethereum
-Name Service (ENS) name that is designated by Mnemonik to receive Protocol Revenue
-Share payments.
+Name Service (ENS) name that is designated by Mnemonik DAO to receive Protocol
+Revenue Share payments.

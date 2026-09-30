@@ -49,23 +49,17 @@
 
   /* ── masthead ───────────────────────────────── */
 
-  /* The banner is 1600x900 with its content centred on y=450 and roughly
-     130px of empty ground top and bottom, so a centred crop to 1600x700
-     trims only background and turns a full-bleed hero into a header. */
+  /* warrant-header.svg is the banner artwork recomposed to 1600x560, so it
+     needs no crop: the square 1600x900 original stays for decks. */
   .banner {
     display: block;
     margin-top: 1.4rem;
-    aspect-ratio: 1600 / 700;
-    max-width: 100%;
-    overflow: hidden;
     border: 1px solid var(--rule);
   }
   .banner img {
     width: 100%;
-    height: 100%;
+    height: auto;
     display: block;
-    object-fit: cover;
-    object-position: center;
   }
   .standing {
     font-size: 0.8125rem;
@@ -375,6 +369,7 @@
     color: var(--ink-2);
   }
   .colophon p { margin: 0; max-width: 50ch; }
+  .colophon-links { display: flex; flex-wrap: wrap; gap: 0.35rem 1.5rem; }
 
   @media (max-width: 720px) {
     .provenance { grid-template-columns: 1fr; }
@@ -399,7 +394,7 @@
 <div class="sheet">
 
   <header class="banner">
-    <img src="images/warrant-seal-banner.svg"
+    <img src="images/warrant-header.svg"
          alt="Warrant. Verifiable payments for AI agents. Agents decide, the chain pays, only within bounds.">
   </header>
   <div class="standing">
@@ -668,7 +663,10 @@
   <footer class="colophon">
     <p>Warrant is a prototype built on Circle's Arc. Figures come from local runs recorded in the
       repository, not from production traffic.</p>
-    <p>Status as of 24 September 2026</p>
+    <p class="colophon-links">
+      <a href="https://github.com/mnemonik-xyz/warrant">Source and design documents on GitHub</a>
+      <span>Status as of 24 September 2026</span>
+    </p>
   </footer>
 
 </div>
