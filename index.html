@@ -49,34 +49,37 @@
 
   /* ── masthead ───────────────────────────────── */
 
-  .masthead {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.9rem 1.5rem;
-    padding-block: 1.5rem 1.3rem;
-    border-bottom: 1px solid var(--rule);
+  /* The banner is 1600x900 with its content centred on y=450 and roughly
+     130px of empty ground top and bottom, so a centred crop to 1600x700
+     trims only background and turns a full-bleed hero into a header. */
+  .banner {
+    display: block;
+    margin-top: 1.4rem;
+    aspect-ratio: 1600 / 700;
+    max-width: 100%;
+    overflow: hidden;
+    border: 1px solid var(--rule);
   }
-  .brand { display: flex; align-items: center; gap: 0.75rem; }
-  .mark { width: 38px; height: 38px; display: block; }
-  .wordmark {
-    font-weight: 800;
-    font-size: 1.1875rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+  .banner img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: center;
   }
   .standing {
     font-size: 0.8125rem;
     color: var(--ink-2);
     display: flex;
-    gap: 1.25rem;
+    gap: 0.5rem 1.25rem;
     flex-wrap: wrap;
+    padding-block: 0.9rem 1.1rem;
+    border-bottom: 1px solid var(--rule);
   }
 
   /* ── hero ───────────────────────────────────── */
 
-  .hero { padding-block: 3.4rem 0; }
+  .hero { padding-block: 2.8rem 0; }
   h1 {
     font-weight: 800;
     font-size: clamp(1.95rem, 5vw, 2.9rem);
@@ -395,20 +398,17 @@
 
 <div class="sheet">
 
-  <header class="masthead">
-    <div class="brand">
-      <img class="mark" src="images/Warrant_sealA.svg" alt="Warrant seal">
-      <span class="wordmark">Warrant</span>
-    </div>
-    <div class="standing">
-      <span>Verifiable payments for AI agents</span>
-      <span>USDC on Arc</span>
-      <span>Working prototype, September 2026</span>
-    </div>
+  <header class="banner">
+    <img src="images/warrant-seal-banner.svg"
+         alt="Warrant. Verifiable payments for AI agents. Agents decide, the chain pays, only within bounds.">
   </header>
+  <div class="standing">
+    <span>USDC on Arc</span>
+    <span>Working prototype, September 2026</span>
+  </div>
 
   <div class="hero">
-    <h1>An invoice is just text that someone else wrote. The agent reading it should not be able to pay.</h1>
+    <h1>An invoice is just text that someone else wrote. Let your agent do the work, and keep the authority to pay.</h1>
     <p class="standfirst">Warrant lets an AI agent run a business's accounts payable in USDC. The agent
       reads invoices and proposes payments. It cannot make one. A formally verified checker decides, and
       an escrow on Arc releases money only against an authorization it can verify for itself. Prompt
