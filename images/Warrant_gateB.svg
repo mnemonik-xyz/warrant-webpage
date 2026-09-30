@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<defs><linearGradient id="t" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5eead4"/><stop offset="1" stop-color="#14b8a6"/></linearGradient></defs>
+<rect width="1024" height="1024" rx="200" fill="#0b1220"/>
+<g transform="translate(512,540)">
+<!-- lintel (ceiling) -->
+<rect x="-300" y="-300" width="600" height="44" rx="22" fill="#f59e0b"/>
+<!-- pillars -->
+<rect x="-300" y="-240" width="70" height="500" rx="20" fill="#e2e8f0"/>
+<rect x="230" y="-240" width="70" height="500" rx="20" fill="#e2e8f0"/>
+<!-- W as passage: solid teal block with W cut out -->
+<path fill-rule="evenodd" fill="url(#t)" d="M-200,-240 h400 v500 h-400 z M-150,-190 l55,330 h60 l35,-190 l35,190 h60 l55,-330 h-60 l-35,220 l-35,-220 h-60 l-35,220 l-35,-220 z"/>
+<!-- base chain dots -->
+<circle cx="-60" cy="320" r="11" fill="#94a3b8"/><circle cx="0" cy="320" r="11" fill="#94a3b8"/><circle cx="60" cy="320" r="11" fill="#94a3b8"/>
+</g></svg>
