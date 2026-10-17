@@ -579,10 +579,11 @@
     <ol class="flow">
       <li><span><strong>Connect our seller MCP server.</strong> Add
         <code>https://seller.mnemonik.xyz/mcp</code> to Claude Desktop, Cursor or another MCP client. The
-        server needs a basic-auth credential. <a href="#contact">Ask us for one</a>.</span></li>
+        server needs no password and no account. Nobody needs to approve you.</span></li>
       <li><span><strong>Connect the buyer guardrail.</strong> This local MCP server holds your Arc wallet key
         and the 1 USD cap. It funds the escrow and signs your acceptance. The seller cannot do these two
-        steps for you. <a href="https://github.com/mnemonik-xyz/policy-execution/tree/main/showcases/ionet_arc#buyer-setup">Buyer setup</a>.</span></li>
+        steps for you. The guardrail also signs each request with your wallet, so only you can use your
+        container. <a href="https://github.com/mnemonik-xyz/policy-execution/tree/main/showcases/ionet_arc#buyer-setup">Buyer setup</a>.</span></li>
       <li><span><strong>Ask the agent.</strong> Say: <em>"Transcribe audio.mp3."</em> The agent gets a
         quote, funds the order, checks the GPU, settles and returns the text. To get audio from a video, run
         <code>ffmpeg -i video.mp4 -vn audio.mp3</code>.</span></li>
@@ -668,8 +669,8 @@
       <h3>What to know before you buy</h3>
       <p>The transcription purchase on mainnet <strong>has not run with money yet</strong>. You are the first
         test. The seller MCP settles through the test-double verifier, so you trust the seller. The cap is
-        1 USD for each deal. The seller gives no hardware attestation. The credential is shared, so any holder
-        can call every tool.</p>
+        1 USD for each deal. The seller gives no hardware attestation. A buyer who funds an order and never
+        settles blocks the single deal slot until the order expires.</p>
     </div>
 
     <p style="margin-top:1.4rem">Full runbook, how to run your own seller and the operator notes:
