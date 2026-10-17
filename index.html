@@ -377,6 +377,40 @@
     color: var(--ink);
   }
 
+
+  /* ── showcase: run it yourself ──────────────── */
+
+  .flow { margin: 2rem 0 0; padding: 0; list-style: none; counter-reset: flow; border-top: 1px solid var(--rule); }
+  .flow li {
+    counter-increment: flow;
+    display: grid;
+    grid-template-columns: 2.25rem 1fr;
+    gap: 1rem;
+    padding-block: 0.95rem;
+    border-bottom: 1px solid var(--rule-fine);
+    font-size: 0.9375rem;
+    color: var(--ink-2);
+  }
+  .flow li::before { content: counter(flow); font-weight: 800; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .flow strong { color: var(--ink); font-weight: 600; }
+  .flow code, p code, li code { font-family: var(--mono); font-size: 0.8125rem; color: var(--teal); }
+
+  .cmd {
+    margin: 1rem 0 0;
+    padding: 1rem 1.15rem;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    color: var(--ink);
+    overflow-x: auto;
+    white-space: pre;
+    max-width: none;
+  }
+  .cmd .note { color: var(--ink-3); }
+  h3.step { margin-top: 2.2rem; }
+
   @media (max-width: 720px) {
     .provenance { grid-template-columns: 1fr; }
     .provenance > div {
@@ -390,6 +424,7 @@
     .ledger > div { grid-template-columns: 1fr; gap: 0.45rem; }
     .stage { grid-template-columns: 1fr; gap: 0.5rem; }
     .gate { grid-template-columns: 1fr; gap: 1.1rem; }
+    .flow li { grid-template-columns: 1.6rem 1fr; gap: 0.7rem; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -604,6 +639,113 @@
           bounds each order. There is no budget for each category or for each period.</dd>
       </div>
     </dl>
+  </section>
+
+  <section id="showcase">
+    <h2>Showcase: an agent buys GPU time and transcribes audio</h2>
+    <p>The showcase shows Warrant with a real purchase. A buyer agent rents a one-hour GPU
+      container from a seller. The container runs a <code>faster-whisper</code> transcription
+      worker. The buyer sends audio to it and receives the text with timestamps. The buyer agent
+      holds no key that can pay. A local guardrail program holds the keys and the spending cap.</p>
+
+    <h3 class="step">How a purchase runs</h3>
+    <ol class="flow">
+      <li><span><strong>Quote.</strong> The agent asks the seller MCP server for a GPU and a price.
+        The seller returns a proposal with a <code>task_id</code>. A quote moves no money.</span></li>
+      <li><span><strong>Policy check.</strong> The buyer guardrail checks the budget cap and the lease
+        length. It derives the policy hash. It then funds <code>TaskEscrow</code> on Arc.</span></li>
+      <li><span><strong>Acceptance.</strong> The seller reads the order from the chain and accepts it.
+        The buyer cannot cancel after this step. The seller starts the container on io.net.</span></li>
+      <li><span><strong>Health check.</strong> The buyer calls <code>/health</code> on the container
+        with the worker token. The buyer then signs an acceptance statement with its own key.</span></li>
+      <li><span><strong>Settlement.</strong> The checker evaluates the evidence. It produces the
+        authorization journal. The escrow releases the USDC to the seller.</span></li>
+      <li><span><strong>Transcription.</strong> The buyer posts audio to <code>/job</code> and reads
+        the result from <code>/job/&lt;id&gt;</code>. The lease lasts one hour.</span></li>
+    </ol>
+
+    <div class="keyclaim">
+      <h3>State of the showcase on 17 October 2026</h3>
+      <p>The seller for Arc mainnet (chain ID 5042) is live at
+        <code>https://seller.mnemonik.xyz/mcp</code>. It needs HTTP basic auth. The operator gives the
+        credential. The full purchase path on mainnet <strong>has not run with money yet</strong>.
+        The seller uses a test-double verifier that checks no signature, so the buyer trusts the seller.
+        The cap is 1 USD for each deal.</p>
+      <p>A separate solver bounty settled on mainnet on 16 October 2026 with a real Groth16 proof.</p>
+    </div>
+
+    <h3 class="step">How to run it as a buyer</h3>
+    <p>You need a Rust toolchain, Python 3, Node.js, an MCP client such as Claude Desktop or Cursor,
+      and an Arc wallet with a little USDC. Run every command from the root of the
+      <a href="https://github.com/mnemonik-xyz/policy-execution">policy-execution</a> repository.</p>
+
+    <ol class="flow">
+      <li><span><strong>Build the checker.</strong> The guardrail needs the compiled binaries.</span></li>
+    </ol>
+<pre class="cmd">cargo build --release -p warrant-host
+python3 -m venv .venv
+.venv/bin/pip install -r showcases/ionet_arc/requirements.txt</pre>
+
+    <ol class="flow" style="border-top:0;margin-top:0">
+      <li><span><strong>Make your own acceptance key.</strong> Never use a key that another person gave you.</span></li>
+    </ol>
+<pre class="cmd">mkdir -p showcases/ionet_arc/.keys
+(umask 077 &amp;&amp; openssl rand -hex 32 &gt; showcases/ionet_arc/.keys/buyer_acceptance.key)</pre>
+
+    <ol class="flow" style="border-top:0;margin-top:0">
+      <li><span><strong>Write your manifest.</strong> Copy <code>showcases/ionet_arc/config/manifest.yaml</code>
+        to a file outside git. Set <code>chain_id: 5042</code>,
+        <code>rpc_url: https://rpc.mainnet.arc.io</code>, the escrow, verifier and token addresses from the
+        README, your own <code>buyer_address</code>, and <code>max_budget_usd: 1.00</code>. Add your public
+        acceptance key to a copy of <code>mainnet-public_keys.yaml</code>.</span></li>
+      <li><span><strong>Add the two MCP servers to your client.</strong> The guardrail runs locally over
+        <code>stdio</code> with your wallet key file. The seller runs remotely. Put the basic-auth value in
+        the environment variable <code>SELLER_AUTH</code>. Do not paste the password into a chat.</span></li>
+    </ol>
+<pre class="cmd">{
+  "mcpServers": {
+    "buyer-warrant-guardrail": {
+      "command": "/path/to/repo/.venv/bin/python",
+      "args": ["-m", "showcases.ionet_arc.buyer_mcp_server",
+               "--transport", "stdio",
+               "--manifest", "/path/to/your/manifest.yaml",
+               "--key-file", "/path/to/your/buyer.key"]
+    },
+    "seller-transcription-service": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://seller.mnemonik.xyz/mcp",
+               "--header", "Authorization:${SELLER_AUTH}"],
+      "env": { "SELLER_AUTH": "Basic &lt;base64 of user:password&gt;" }
+    }
+  }
+}</pre>
+
+    <ol class="flow" style="border-top:0;margin-top:0">
+      <li><span><strong>Ask the agent.</strong> Restart the client and open a new chat. For a quote only, say:
+        <em>"Use the seller-transcription-service tools to request a quote for a transcription task with a
+        maximum of 1.00 USD. My customer address is &lt;your wallet&gt;. Do not fund or accept anything."</em>
+        To buy, ask it to deploy and to transcribe your audio file. Extract the audio first from a video:
+        <code>ffmpeg -i video.mp4 -vn audio.mp3</code>.</span></li>
+    </ol>
+
+    <h3 class="step">How to run the seller yourself</h3>
+    <p>To host a seller, start the seller MCP server. It reads the same manifest. It refuses to start
+      when the RPC does not answer <code>eth_chainId</code>.</p>
+<pre class="cmd">.venv/bin/python -m showcases.ionet_arc.seller_mcp_server --host 0.0.0.0 --port 8000
+<span class="note"># add --local-server --ssh-host &lt;host&gt; to deploy the container over SSH and Docker</span>
+.venv/bin/python -m unittest showcases.ionet_arc.test_pilot -v   <span class="note"># offline tests</span></pre>
+
+    <p style="margin-top:1.4rem">The transcription worker has its own repository:
+      <a href="https://github.com/mnemonik-xyz/transcription">mnemonik-xyz/transcription</a>. The full
+      runbook, the contract deployment steps and the operator notes are in
+      <a href="https://github.com/mnemonik-xyz/policy-execution/tree/main/showcases/ionet_arc">showcases/ionet_arc</a>.</p>
+
+    <div class="keyclaim">
+      <h3>What this showcase does not prove</h3>
+      <p>The seller gives no hardware attestation. The buyer cannot confirm the GPU model. The buyer
+        confirms only that the container answers with the secret token. The shared basic-auth credential
+        lets any holder call every tool. Hand it out only to people you trust.</p>
+    </div>
   </section>
 
   <section>
