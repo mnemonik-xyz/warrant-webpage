@@ -442,6 +442,9 @@
   .contact input:focus-visible, .contact textarea:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
   .contact .btn { justify-self: start; margin-top: 1.1rem; }
   .alt { margin-top: 1.4rem; font-size: 0.9375rem; }
+  .addr td { font-family: var(--mono); font-size: 0.8125rem; word-break: break-all; }
+  .addr td + td { font-family: var(--sans); font-size: 0.9375rem; word-break: normal; }
+  .addr tbody th { white-space: normal; }
 
   @media (max-width: 720px) {
     .provenance { grid-template-columns: 1fr; }
@@ -456,6 +459,10 @@
     .ledger > div { grid-template-columns: 1fr; gap: 0.45rem; }
     .stage { grid-template-columns: 1fr; gap: 0.5rem; }
     .gate { grid-template-columns: 1fr; gap: 1.1rem; }
+    .addr { min-width: 0; }
+    .addr thead { display: none; }
+    .addr tr { display: block; padding: 0.8rem 0; border-bottom: 1px solid var(--rule-fine); }
+    .addr th, .addr td { display: block; padding: 0.15rem 0; border: 0; }
     .flow li { grid-template-columns: 1.6rem 1fr; gap: 0.7rem; }
   }
 
@@ -563,100 +570,112 @@
 
   <section id="showcase">
     <h2>Showcase: an agent buys GPU time and transcribes audio</h2>
-    <p>A buyer agent rents a one-hour GPU container from a seller. A <code>faster-whisper</code> worker runs
-      in the container. The buyer sends audio to it and receives text with timestamps. A local guardrail
-      holds the keys and the spending cap. The agent holds none.</p>
+    <p>The showcase runs on Arc mainnet. A buyer agent rents a one-hour GPU container from our seller. A
+      <code>faster-whisper</code> worker runs in the container. The agent sends your audio to it and returns
+      the text with timestamps. A local guardrail holds your wallet key and the spending cap. The agent holds
+      no key that can pay.</p>
 
-    <h3 class="step">How a purchase runs</h3>
+    <h3 class="step">Try it in three steps</h3>
     <ol class="flow">
-      <li><span><strong>Quote.</strong> The agent asks the seller MCP server for a GPU and a price. The seller
-        returns a proposal with a <code>task_id</code>. A quote moves no money.</span></li>
-      <li><span><strong>Policy check.</strong> The buyer guardrail checks the budget cap and the lease
-        length. It derives the policy hash. It then funds <code>TaskEscrow</code> on Arc.</span></li>
-      <li><span><strong>Acceptance.</strong> The seller reads the order from the chain and accepts it. The
-        buyer cannot cancel after this step. The seller starts the container on io.net.</span></li>
-      <li><span><strong>Health check.</strong> The buyer calls <code>/health</code> on the container with the
-        worker token. The buyer then signs an acceptance statement with its own key.</span></li>
-      <li><span><strong>Settlement.</strong> The checker evaluates the evidence and produces the
-        authorization. The escrow releases the USDC to the seller.</span></li>
-      <li><span><strong>Transcription.</strong> The buyer posts audio to <code>/job</code> and reads the
-        result from <code>/job/&lt;id&gt;</code>. The lease lasts one hour.</span></li>
-    </ol>
-
-    <div class="keyclaim">
-      <h3>State of the showcase on 17 October 2026</h3>
-      <p>The seller for Arc mainnet (chain ID 5042) is live at <code>https://seller.mnemonik.xyz/mcp</code>. It
-        needs HTTP basic auth. The operator gives the credential. The full purchase path on mainnet
-        <strong>has not run with money yet</strong>. The seller uses a test-double verifier that checks no
-        signature, so the buyer trusts the seller. The cap is 1 USD for each deal.</p>
-      <p>A separate solver bounty settled on mainnet on 16 October 2026 with a real Groth16 proof.</p>
-    </div>
-
-    <h3 class="step">How to run it as a buyer</h3>
-    <p>You need a Rust toolchain, Python 3, Node.js, an MCP client such as Claude Desktop or Cursor, and an
-      Arc wallet with a little USDC. Run every command from the root of the
-      <a href="https://github.com/mnemonik-xyz/policy-execution">policy-execution</a> repository.</p>
-
-<pre class="cmd"><span class="note"># 1. Build the checker and install the Python packages</span>
-cargo build --release -p warrant-host
-python3 -m venv .venv
-.venv/bin/pip install -r showcases/ionet_arc/requirements.txt
-
-<span class="note"># 2. Make your own acceptance key. Never use a key that another person gave you.</span>
-mkdir -p showcases/ionet_arc/.keys
-(umask 077 &amp;&amp; openssl rand -hex 32 &gt; showcases/ionet_arc/.keys/buyer_acceptance.key)</pre>
-
-    <ol class="flow" style="border-top:0;margin-top:1rem">
-      <li><span><strong>Write your manifest.</strong> Copy <code>showcases/ionet_arc/config/manifest.yaml</code>
-        to a file outside git. Set <code>chain_id: 5042</code>, <code>rpc_url: https://rpc.mainnet.arc.io</code>,
-        the escrow, verifier and token addresses from the showcase README, your own
-        <code>buyer_address</code> and <code>max_budget_usd: 1.00</code>.</span></li>
-      <li><span><strong>Add the two MCP servers to your client.</strong> The guardrail runs locally over
-        <code>stdio</code> with your wallet key file. The seller runs remotely. Put the basic-auth value in
-        the environment variable <code>SELLER_AUTH</code>. Do not paste the password into a chat.</span></li>
-    </ol>
-<pre class="cmd">{
-  "mcpServers": {
-    "buyer-warrant-guardrail": {
-      "command": "/path/to/repo/.venv/bin/python",
-      "args": ["-m", "showcases.ionet_arc.buyer_mcp_server", "--transport", "stdio",
-               "--manifest", "/path/to/your/manifest.yaml",
-               "--key-file", "/path/to/your/buyer.key"]
-    },
-    "seller-transcription-service": {
-      "command": "npx",
-      "args": ["-y", "mcp-remote", "https://seller.mnemonik.xyz/mcp",
-               "--header", "Authorization:${SELLER_AUTH}"],
-      "env": { "SELLER_AUTH": "Basic &lt;base64 of user:password&gt;" }
-    }
-  }
-}</pre>
-    <ol class="flow" style="border-top:0;margin-top:1rem">
-      <li><span><strong>Ask the agent.</strong> Restart the client and open a new chat. For a quote only, say:
-        <em>"Use the seller-transcription-service tools to request a quote for a transcription task with a
-        maximum of 1.00 USD. My customer address is &lt;your wallet&gt;. Do not fund or accept anything."</em>
-        To buy, ask the agent to deploy and to transcribe your audio file. To get audio from a video, run
+      <li><span><strong>Connect our seller MCP server.</strong> Add
+        <code>https://seller.mnemonik.xyz/mcp</code> to Claude Desktop, Cursor or another MCP client. The
+        server needs no password and no account. Nobody needs to approve you.</span></li>
+      <li><span><strong>Connect the buyer guardrail.</strong> This local MCP server holds your Arc wallet key
+        and the 1 USD cap. It funds the escrow and signs your acceptance. The seller cannot do these two
+        steps for you. The guardrail also signs each request with your wallet, so only you can use your
+        container. <a href="https://github.com/mnemonik-xyz/policy-execution/tree/main/showcases/ionet_arc#buyer-setup">Buyer setup</a>.</span></li>
+      <li><span><strong>Ask the agent.</strong> Say: <em>"Transcribe audio.mp3."</em> The agent gets a
+        quote, funds the order, checks the GPU, settles and returns the text. To get audio from a video, run
         <code>ffmpeg -i video.mp4 -vn audio.mp3</code>.</span></li>
     </ol>
 
-    <h3 class="step">How to run the seller yourself</h3>
-    <p>The seller MCP server reads the same manifest. It refuses to start when the RPC does not answer
-      <code>eth_chainId</code>.</p>
-<pre class="cmd">.venv/bin/python -m showcases.ionet_arc.seller_mcp_server --host 0.0.0.0 --port 8000
-<span class="note"># add --local-server --ssh-host &lt;host&gt; to deploy the container over SSH and Docker</span>
-.venv/bin/python -m unittest showcases.ionet_arc.test_pilot -v   <span class="note"># offline tests</span></pre>
+    <h3 class="step">What happens on the chain</h3>
+    <ol class="flow">
+      <li><span><strong>Quote.</strong> The seller returns a price and a <code>task_id</code>. A quote moves
+        no money.</span></li>
+      <li><span><strong>Policy check.</strong> The guardrail checks the cap and the lease length. It then
+        funds <code>TaskEscrow</code>.</span></li>
+      <li><span><strong>Acceptance.</strong> The seller reads the order from the chain, accepts it and
+        starts the container on io.net.</span></li>
+      <li><span><strong>Health check.</strong> The agent tests the container. The guardrail signs an
+        acceptance statement.</span></li>
+      <li><span><strong>Settlement.</strong> The checker evaluates the evidence. The escrow releases the
+        USDC to the seller.</span></li>
+      <li><span><strong>Transcription.</strong> The agent posts audio to the worker for the rest of the
+        one-hour lease.</span></li>
+    </ol>
 
-    <p style="margin-top:1.4rem">The transcription worker has its own repository:
-      <a href="https://github.com/mnemonik-xyz/transcription">mnemonik-xyz/transcription</a>. The full runbook,
-      the contract deployment steps and the operator notes are in
-      <a href="https://github.com/mnemonik-xyz/policy-execution/tree/main/showcases/ionet_arc">showcases/ionet_arc</a>.</p>
+    <h3 class="step">Contracts on Arc mainnet</h3>
+    <p>Chain ID 5042. Every address opens in the Arc explorer. The sources are in the
+      <a href="https://github.com/mnemonik-xyz/policy-execution/tree/main/contracts/src">policy-execution</a>
+      repository.</p>
+    <div class="scroller">
+      <table class="paths addr">
+        <thead>
+          <tr><th scope="col">Contract or key</th><th scope="col">Address</th><th scope="col">Role</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">TaskEscrow</th>
+            <td><a href="https://explorer.arc.io/address/0x5fae10ac58bf90c17f516292883a4f17c0768002">0x5fae10ac58bf90c17f516292883a4f17c0768002</a></td>
+            <td>The escrow that the seller MCP uses now. No proof.</td></tr>
+          <tr><th scope="row">JournalVerifier</th>
+            <td><a href="https://explorer.arc.io/address/0xdfe2fdb1d9942af02f99facfaa5b22d0031ad76c">0xdfe2fdb1d9942af02f99facfaa5b22d0031ad76c</a></td>
+            <td>Test double for that escrow. It checks no signature.</td></tr>
+          <tr><th scope="row">USDC</th>
+            <td><a href="https://explorer.arc.io/address/0x3600000000000000000000000000000000000000">0x3600000000000000000000000000000000000000</a></td>
+            <td>Arc system token, 6 decimals.</td></tr>
+          <tr><th scope="row">Seller wallet</th>
+            <td><a href="https://explorer.arc.io/address/0xb8202bebb6d8a0a822a56c0062632325c3923eeb">0xb8202bebb6d8a0a822a56c0062632325c3923eeb</a></td>
+            <td>Receives the payment for each lease.</td></tr>
+          <tr><th scope="row">Registry key</th>
+            <td><code>0x02264b8d8cdb5b5a45736a4e3f679966966f39979b16794f08530c1ac6d77ee034</code></td>
+            <td>Signs the seller credential.</td></tr>
+          <tr><th scope="row">SolverBountyEscrow</th>
+            <td><a href="https://explorer.arc.io/address/0xbe6b87c0d2a1a7c28207cdecd4f6c68ffe4122e0">0xbe6b87c0d2a1a7c28207cdecd4f6c68ffe4122e0</a></td>
+            <td>Proven solver canary. Paid only after a Groth16 proof.</td></tr>
+          <tr><th scope="row">RiscZeroGroth16Verifier</th>
+            <td><a href="https://explorer.arc.io/address/0xc4fb7340971e8ad6925f16c2a275cd13cb7bec99">0xc4fb7340971e8ad6925f16c2a275cd13cb7bec99</a></td>
+            <td>RISC Zero <code>risc0-ethereum</code> v3.0.0.</td></tr>
+          <tr><th scope="row">TaskEscrow (receipt-verified)</th>
+            <td><a href="https://explorer.arc.io/address/0x9449C1fDd068cDe33D900b1ab15f9861dc39bC51">0x9449C1fDd068cDe33D900b1ab15f9861dc39bC51</a></td>
+            <td>Deployed. The seller MCP does not use it yet.</td></tr>
+          <tr><th scope="row">ReceiptClaimVerifier</th>
+            <td><a href="https://explorer.arc.io/address/0x0932F120DEe4cA83676B8224769eE52b7d6D00c6">0x0932F120DEe4cA83676B8224769eE52b7d6D00c6</a></td>
+            <td>Checks the prover signature. Not used yet.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="step">Transactions on Arc mainnet</h3>
+    <p>A 2 USDC deal settled on 16 October 2026 with a real RISC Zero Groth16 proof. The escrow released the
+      money only after the verifier accepted the proof.</p>
+    <div class="scroller">
+      <table class="paths addr">
+        <thead><tr><th scope="col">Step</th><th scope="col">Transaction</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Deploy RiscZeroGroth16Verifier</th><td><a href="https://explorer.arc.io/tx/0xead1e9d705b13fddfeb8c87c13307e61d9d13d4e5020fc0cfaf31fa12fee189a">0xead1e9d7…ee189a</a></td></tr>
+          <tr><th scope="row">Deploy SolverBountyEscrow</th><td><a href="https://explorer.arc.io/tx/0x34902ab030ce99fa8427fdc8b908017bb8ec418b033b0f7dde22105013121aaa">0x34902ab0…121aaa</a></td></tr>
+          <tr><th scope="row">Buyer approves 2 USDC</th><td><a href="https://explorer.arc.io/tx/0x9c8104d5a49602ac45f9c6292981b82b1d5d88e6ff79df8acf9726f971db1ac9">0x9c8104d5…db1ac9</a></td></tr>
+          <tr><th scope="row">Buyer funds the escrow</th><td><a href="https://explorer.arc.io/tx/0x204eb61a89776a6ce764a61770d7c48f2d63df40d8e32657287937738b3d8279">0x204eb61a…3d8279</a></td></tr>
+          <tr><th scope="row">Buyer accepts the proven terms</th><td><a href="https://explorer.arc.io/tx/0x346fcfc14d1ece27a022090629a7ace6519f131829472cbe220d88b9648dac9c">0x346fcfc1…8dac9c</a></td></tr>
+          <tr><th scope="row">Settlement with the proof</th><td><a href="https://explorer.arc.io/tx/0xd0fb5b024c28ca80e38466917702fdb1b856761cd6cd8bccd58a814699975026">0xd0fb5b02…975026</a></td></tr>
+          <tr><th scope="row">Deploy JournalVerifier</th><td><a href="https://explorer.arc.io/tx/0x457e62dc0a375d87a9a7b27582a0e02e6fd60d27c840aa9a8e0ab6a16b685ade">0x457e62dc…685ade</a></td></tr>
+          <tr><th scope="row">Deploy TaskEscrow (seller MCP)</th><td><a href="https://explorer.arc.io/tx/0x6adc9771ca30d1726e0e08fc9fd553ff205ae4d4a72cf0b18e9cf3f54eb14735">0x6adc9771…b14735</a></td></tr>
+        </tbody>
+      </table>
+    </div>
 
     <div class="keyclaim">
-      <h3>What this showcase does not prove</h3>
-      <p>The seller gives no hardware attestation. The buyer cannot confirm the GPU model. The buyer confirms
-        only that the container answers with the secret token. The shared basic-auth credential lets any
-        holder call every tool. Hand it out only to people you trust.</p>
+      <h3>What to know before you buy</h3>
+      <p>The transcription purchase on mainnet <strong>has not run with money yet</strong>. You are the first
+        test. The seller MCP settles through the test-double verifier, so you trust the seller. The cap is
+        1 USD for each deal. The seller gives no hardware attestation. A buyer who funds an order and never
+        settles blocks the single deal slot until the order expires.</p>
     </div>
+
+    <p style="margin-top:1.4rem">Full runbook, how to run your own seller and the operator notes:
+      <a href="https://github.com/mnemonik-xyz/policy-execution/tree/main/showcases/ionet_arc">showcases/ionet_arc</a>.
+      The worker: <a href="https://github.com/mnemonik-xyz/transcription">mnemonik-xyz/transcription</a>.</p>
   </section>
 
   <section id="partner">
