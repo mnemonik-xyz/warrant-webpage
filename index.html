@@ -673,18 +673,17 @@ mkdir -p showcases/ionet_arc/.keys
 
   <section id="contact">
     <h2>Contact us</h2>
-    <p>Ask about the showcase, a pilot or the design. The form opens a prefilled issue in our public GitHub
-      repository, so the message is public. Do not put secrets in it.</p>
-    <form id="contact-form" class="contact" action="https://github.com/mnemonik-xyz/warrant/issues/new" method="get" target="_blank" rel="noopener">
+    <p>Ask about the showcase, a pilot or the design. The form opens a message to
+      <a href="mailto:dev@mnemonik.xyz">dev@mnemonik.xyz</a> in your mail program. If no mail program opens,
+      write to that address directly.</p>
+    <form id="contact-form" class="contact" action="mailto:dev@mnemonik.xyz" method="post" enctype="text/plain">
       <label for="c-name">Name</label>
       <input id="c-name" type="text" autocomplete="name" required>
       <label for="c-org">Company or project</label>
       <input id="c-org" type="text" autocomplete="organization">
       <label for="c-msg">Message</label>
       <textarea id="c-msg" rows="5" required></textarea>
-      <input type="hidden" name="title" id="c-title">
-      <input type="hidden" name="body" id="c-body">
-      <button class="btn" type="submit">Open the issue on GitHub</button>
+      <button class="btn" type="submit">Send message</button>
     </form>
     <p class="alt"><a href="https://github.com/mnemonik-xyz/warrant">github.com/mnemonik-xyz/warrant</a></p>
   </section>
@@ -703,10 +702,13 @@ mkdir -p showcases/ionet_arc/.keys
 </div>
 
 <script>
-  document.getElementById('contact-form').addEventListener('submit', function () {
+  document.getElementById('contact-form').addEventListener('submit', function (e) {
+    e.preventDefault();
     var v = function (id) { return document.getElementById(id).value; };
-    document.getElementById('c-title').value = 'Contact: ' + v('c-name') + (v('c-org') ? ' (' + v('c-org') + ')' : '');
-    document.getElementById('c-body').value = v('c-msg');
+    var subject = 'Warrant contact: ' + v('c-name') + (v('c-org') ? ' (' + v('c-org') + ')' : '');
+    var body = v('c-msg') + '\n\n' + v('c-name') + (v('c-org') ? ', ' + v('c-org') : '');
+    window.location.href = 'mailto:dev@mnemonik.xyz?subject=' + encodeURIComponent(subject) +
+      '&body=' + encodeURIComponent(body);
   });
 </script>
 </body>
